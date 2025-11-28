@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual env
+.venv/
+venv/
+ENV/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Logs / temp
+*.log
+*.tmp
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+
+# Coverage / test
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Installer outputs
+installer/dist-installer/
+
+# Website downloads (generated artifacts)
+website/downloads/*.zip
+website/downloads/*.exe
+
+# OS files
+Thumbs.db
+.DS_Store

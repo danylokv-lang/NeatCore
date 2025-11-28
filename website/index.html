@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NeatCore – Intelligent File Cleaner</title>
+  <meta name="description" content="NeatCore intelligently scans, classifies and cleans your files with AI recommendations, safe actions and duplicate detection." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="icon" type="image/png" href="../assets/icon.png" />
+</head>
+<body>
+<header class="hero" id="top">
+  <div class="nav">
+    <div class="logo">NeatCore</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#faq">FAQ</a>
+      <button id="themeToggle" aria-label="Toggle theme">🌗</button>
+    </nav>
+  </div>
+  <div class="hero-content">
+    <h1>Clean Smarter. Not Harder.</h1>
+    <p class="tagline">NeatCore uses light AI heuristics and similarity checks to find clutter, duplicates and low-value files – keeping your storage healthy and fast.</p>
+    <div class="cta">
+      <a class="btn primary" id="downloadBtn" href="downloads/NeatCore.zip" download>Download NeatCore</a>
+      <a class="btn ghost" href="#features">Explore Features ↓</a>
+    </div>
+    <p class="version">Current Version: 1.0.0 (Windows)</p>
+  </div>
+  <div class="hero-bg"></div>
+</header>
+<main>
+  <section id="features" class="section features">
+    <h2>Why NeatCore?</h2>
+    <div class="grid">
+      <div class="card"><h3>Intelligent Scan</h3><p>Streams through folders without freezing the UI. Handles huge trees using batching for smooth responsiveness.</p></div>
+      <div class="card"><h3>Smart Classification</h3><p>Identifies images, docs, screenshots, media and archives. Flags low-quality or small images for possible removal.</p></div>
+      <div class="card"><h3>Duplicate Detection</h3><p>Finds exact and perceptual image duplicates (pHash) with efficient bucketing and minimal overhead.</p></div>
+      <div class="card"><h3>Action Recommendations</h3><p>Suggests delete, move (archive), or compress based on age, location (Downloads), quality metrics and redundancy.</p></div>
+      <div class="card"><h3>Safety First</h3><p>Uses Recycle Bin (send2trash) for deletions so you can easily restore mis-clicked files.</p></div>
+      <div class="card"><h3>Fast Mode</h3><p>Skips heavy system and build folders (.git, node_modules, AppData) for rapid triage sessions.</p></div>
+      <div class="card"><h3>Multi-Folder Scan</h3><p>Select several folders or use Quick Suggest to auto-pick Desktop, Downloads, Documents and more.</p></div>
+      <div class="card"><h3>Transparent Reasons</h3><p>Every recommendation includes a clear reason list (age, quality, duplication, folder context).</p></div>
+    </div>
+  </section>
+  <section id="how" class="section how">
+    <h2>How It Works</h2>
+    <ol class="steps">
+      <li><strong>Select Folders</strong> or use <em>Quick Suggest</em>.</li>
+      <li><strong>Streaming Scan</strong> populates the table as files are seen.</li>
+      <li><strong>Analysis</strong> classifies each file and computes quality metrics for images.</li>
+      <li><strong>Duplicate Pass</strong> groups exact + perceptual matches.</li>
+      <li><strong>Recommendations</strong> applied rules for old screenshots, low-quality images, old downloads, duplicates.</li>
+      <li><strong>Bulk Actions</strong> choose Delete, Move or Compress safely.</li>
+    </ol>
+    <p class="note">Optional perceptual similarity and AI model loading are deferred to keep startup light.</p>
+  </section>
+  <section id="download" class="section alt">
+    <h2>Get NeatCore</h2>
+    <p>Download the portable folder or run the installer. Built for Windows (64‑bit). Mac/Linux ports can be added later.</p>
+    <div class="downloads">
+      <a class="btn primary" id="downloadBtn" href="downloads/NeatCore.zip" download>Portable ZIP</a>
+      <a class="btn" id="downloadInstallerBtn" href="downloads/NeatCore-Setup.exe" download>Installer EXE</a>
+    </div>
+    <p class="hash" id="hashInfo">Checksum: pending</p>
+  </section>
+  <section id="faq" class="section faq">
+    <h2>FAQ</h2>
+    <details><summary>Is it safe?</summary><p>Deletes go to Recycle Bin. You can restore anytime before emptying it.</p></details>
+    <details><summary>Does it use heavy AI?</summary><p>Core heuristics are lightweight. Optional CLIP model can classify images if you enable it.</p></details>
+    <details><summary>Can I undo actions?</summary><p>Yes—restore from Recycle Bin or keep backups of moved/compressed files.</p></details>
+    <details><summary>How are duplicates detected?</summary><p>Exact hash (MD5) plus perceptual pHash for visually similar images.</p></details>
+    <details><summary>Will it auto delete?</summary><p>No. You explicitly approve actions. Recommendations are guidance only.</p></details>
+  </section>
+</main>
+<footer class="footer">
+  <p>© 2025 NeatCore. All rights reserved.</p>
+  <p><a href="#top">Back to top ↑</a></p>
+</footer>
+<script src="assets/script.js"></script>
+</body>
+</html>
