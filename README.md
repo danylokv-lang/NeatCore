@@ -118,3 +118,4 @@ main.py            # app entrypoint
 requirements.txt
 README.md
 ```
+# NeatCore
