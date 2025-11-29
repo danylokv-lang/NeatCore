@@ -1,15 +1,7 @@
 // NeatCore website interactions
 (function(){
-  const root = document.documentElement;
-  const toggle = document.getElementById('themeToggle');
   const downloadBtn = document.getElementById('downloadBtn');
   const downloadInstallerBtn = document.getElementById('downloadInstallerBtn');
-
-  // Theme toggle
-  toggle.addEventListener('click', ()=>{
-    root.classList.toggle('light');
-    toggle.textContent = root.classList.contains('light') ? '🌑' : '🌗';
-  });
 
   // Smooth scroll for in-page anchors
   document.querySelectorAll('a[href^="#"]').forEach(a => {
@@ -40,33 +32,33 @@
 
   // Helper to test file exists before navigating
   async function tryDownload(url){
-    // If opened as file:// we cannot reliably HEAD fetch; attempt direct navigation
-    if(location.protocol === 'file:') {
-      window.location.href = url; // Browser will attempt direct file open
-      return;
-    }
     try {
-      const res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-      if(res.ok) {
-        window.location.href = url;
-      } else {
-        alert('File not found: ' + url + '\nBuild and copy it into website/downloads.');
-      }
-    } catch (e) {
-      alert('Unable to access: ' + url + '\nStart a local server: `python -m http.server` inside the website folder.');
+      const res = await fetch(url, { cache: 'no-store' });
+      if(!res.ok) throw new Error('Status '+res.status);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const parts = url.split('/');
+      a.download = parts[parts.length-1];
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(()=>{
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 1500);
+    } catch (e){
+      alert('Download failed for: '+url+'\nEnsure the file exists and a proper server serves it.');
     }
   }
 
-  if(downloadBtn){
-    downloadBtn.addEventListener('click', function(e){
+  function wire(btn){
+    if(!btn) return;
+    const file = btn.getAttribute('data-file');
+    btn.addEventListener('click', e => {
       e.preventDefault();
-      tryDownload('downloads/NeatCore.zip');
+      if(file) tryDownload(file);
     });
   }
-  if(downloadInstallerBtn){
-    downloadInstallerBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      tryDownload('downloads/NeatCore-Setup.exe');
-    });
-  }
+  wire(downloadBtn);
+  wire(downloadInstallerBtn);
 })();
