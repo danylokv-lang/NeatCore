@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NeatCore – Intelligent File Cleaner</title>
   <meta name="description" content="NeatCore intelligently scans, classifies and cleans your files with AI recommendations, safe actions and duplicate detection." />
-  <link rel="stylesheet" href="website/assets/style.css" />
+  <!-- Primary stylesheet (root assets first). Fallback to website/ path if deployed subfolder -->
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="website/assets/style.css" media="print" onload="this.media='all'">
   <link rel="icon" type="image/png" href="assets/icon.png" />
 </head>
 <body>
@@ -77,6 +79,7 @@
   <p>© 2025 NeatCore. All rights reserved.</p>
   <p><a href="#top">Back to top ↑</a></p>
 </footer>
-<script src="website/assets/script.js"></script>
+<script src="assets/script.js"></script>
+<script src="website/assets/script.js" defer></script>
 </body>
 </html>
