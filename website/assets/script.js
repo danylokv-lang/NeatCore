@@ -1,4 +1,5 @@
 // NeatCore website interactions
+// NeatCore website interactions (minimal for stability)
 (function(){
   const downloadBtn = document.getElementById('downloadBtn');
   const downloadInstallerBtn = document.getElementById('downloadInstallerBtn');
@@ -31,27 +32,15 @@
   });
 
   // Helper to test file exists before navigating
-  async function tryDownload(url){
-    try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if(!res.ok) throw new Error('Status '+res.status);
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = url.split('/').pop();
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);
-    } catch(e){
-      alert('Download failed for '+url+'\nCheck that the file exists and hosting includes /website/downloads/.');
-    }
+  // We deliberately avoid fetch streaming for large binaries to prevent partial/corrupt downloads via Pages.
+  function directDownload(el){
+    if(!el) return;
+    // Ensure anchor has raw href
+    el.addEventListener('click', function(){
+      // Let browser handle native download
+    });
   }
 
-  function bind(btn){
-    if(!btn) return;
-    const file = btn.getAttribute('data-file');
-    btn.addEventListener('click', e => {e.preventDefault(); if(file) tryDownload(file);});
-  }
-  bind(downloadBtn);
-  bind(downloadInstallerBtn);
+  directDownload(downloadBtn);
+  directDownload(downloadInstallerBtn);
 })();
