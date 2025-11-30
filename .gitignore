@@ -34,6 +34,11 @@ installer/dist-installer/
 website/downloads/*.zip
 website/downloads/*.exe
 
+# Root downloads folder (exclude large release artifacts from Pages build)
+downloads/*.zip
+downloads/*.exe
+downloads/*.msi
+
 # OS files
 Thumbs.db
 .DS_Store
