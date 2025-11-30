@@ -4,7 +4,7 @@ import os
 import zipfile
 from typing import List, Dict
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, QEasingCurve, QPropertyAnimation
 from PySide6.QtGui import QAction, QColor, QBrush, QLinearGradient, QGradient
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
@@ -20,6 +20,7 @@ from send2trash import send2trash
 
 from core.utils import human_size, normalize_path, windows_long_path
 from .workers import ScanWorker, AnalyzeWorker
+from .indicators import BusyIndicator
 
 
 class MainWindow(QMainWindow):
@@ -58,6 +59,8 @@ class MainWindow(QMainWindow):
         self.chk_fast = QCheckBox("Fast Mode")
         self.chk_fast.setChecked(True)
         self.btn_quick = QPushButton("Quick Suggest")
+        self.busy_indicator = BusyIndicator()
+        self.busy_indicator.setVisible(False)
         self.progress = QProgressBar()
         self.progress.setMaximum(100)
         self.progress.setValue(0)
@@ -71,6 +74,7 @@ class MainWindow(QMainWindow):
         top_l.addWidget(self.chk_perceptual)
         top_l.addWidget(self.chk_ai)
         top_l.addWidget(self.chk_fast)
+        top_l.addWidget(self.busy_indicator)
         top_l.addWidget(self.btn_scan)
         top_l.addWidget(self.btn_stop)
         top_l.addWidget(self.btn_quick)
@@ -83,6 +87,61 @@ class MainWindow(QMainWindow):
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(self.table.SelectionBehavior.SelectRows)
+        
+            # Sidebar (navigation)
+            self.sidebar = QListWidget()
+            self.sidebar.setFixedWidth(180)
+            self.sidebar.setSpacing(4)
+            for label in ["Dashboard", "Results", "Recommendations", "Settings"]:
+                item = QListWidgetItem(label)
+                item.setSizeHint(Qt.QSize(160, 42))
+                self.sidebar.addItem(item)
+            self.sidebar.setCurrentRow(0)
+            self.sidebar.currentRowChanged.connect(self._on_nav_change)
+        
+            # Hero page (initial dashboard)
+            self.hero_page = QWidget()
+            hero_l = QVBoxLayout(self.hero_page)
+            hero_l.setAlignment(Qt.AlignCenter)
+            self.hero_title = QLabel("Welcome to NeatCore")
+            self.hero_title.setStyleSheet("font-size:34px;font-weight:600;letter-spacing:0.5px;color:white;")
+            self.hero_sub = QLabel("Start a smart scan to classify, detect duplicates and get safe cleanup recommendations.")
+            self.hero_sub.setWordWrap(True)
+            self.hero_sub.setStyleSheet("color:rgba(255,255,255,0.75);font-size:14px;max-width:540px;")
+            self.hero_scan_btn = QPushButton("Scan Now")
+            self.hero_scan_btn.setObjectName("HeroScanButton")
+            self.hero_scan_btn.setMinimumSize(160,160)
+            self.hero_scan_btn.clicked.connect(self.on_scan)
+            self.hero_extra = QPushButton("Quick Suggest Folders")
+            self.hero_extra.setObjectName("HeroSuggestButton")
+            self.hero_extra.clicked.connect(self.on_quick_suggest)
+            hero_l.addWidget(self.hero_title)
+            hero_l.addWidget(self.hero_sub)
+            hero_l.addSpacing(20)
+            hero_l.addWidget(self.hero_scan_btn)
+            hero_l.addSpacing(10)
+            hero_l.addWidget(self.hero_extra)
+        
+            # Results page (table + top controls)
+            self.results_page = QWidget()
+            res_l = QVBoxLayout(self.results_page)
+            top_bar = QWidget()
+            top_l = QHBoxLayout(top_bar)
+            top_l.addWidget(self.btn_folder)
+            top_l.addWidget(self.lbl_folder, 1)
+            top_l.addWidget(self.btn_clear)
+            top_l.addWidget(QLabel("Filter:"))
+            top_l.addWidget(self.filter_combo)
+            top_l.addWidget(self.chk_duplicates)
+            top_l.addWidget(self.chk_perceptual)
+            top_l.addWidget(self.chk_ai)
+            top_l.addWidget(self.chk_fast)
+            top_l.addWidget(self.busy_indicator)
+            top_l.addWidget(self.btn_scan)
+            top_l.addWidget(self.btn_stop)
+            top_l.addWidget(self.btn_quick)
+            top_l.addWidget(self.progress)
+            res_l.addWidget(top_bar)
         self.table.setEditTriggers(self.table.EditTrigger.NoEditTriggers)
         # Remove borders/obvodky: hide grid and disable row selection outlines
         self.table.setShowGrid(False)
@@ -151,6 +210,22 @@ class MainWindow(QMainWindow):
         self.table.setGraphicsEffect(self._fade)
         self._fade.setOpacity(1.0)
 
+        # Animated appearance of progress bar (opacity animation)
+        self._progress_fx = QGraphicsOpacityEffect(self.progress)
+        self.progress.setGraphicsEffect(self._progress_fx)
+        self._progress_fx.setOpacity(0.0)
+        self._progress_anim = QPropertyAnimation(self._progress_fx, b"opacity", self)
+        self._progress_anim.setDuration(420)
+        self._progress_anim.setStartValue(0.0)
+        self._progress_anim.setEndValue(1.0)
+        self._progress_anim.setEasingCurve(QEasingCurve.InOutQuad)
+
+        # Row animation queue
+        self._row_anim_timer = QTimer(self)
+        self._row_anim_timer.setInterval(30)
+        self._row_anim_timer.timeout.connect(self._tick_row_fade)
+        self._fading_rows = {}  # row -> step (0..10)
+
         # State
         self._stopped = False
         self.btn_stop.setEnabled(False)
@@ -213,6 +288,9 @@ class MainWindow(QMainWindow):
         self._scan_worker.error.connect(lambda e: QMessageBox.critical(self, "Scan Error", e))
         self._scan_worker.start()
         self._flush_timer.start()
+        # Switch to results page automatically
+        self._stack.setCurrentIndex(1)
+        self.sidebar.setCurrentRow(1)
 
     def on_scan_progress(self, val: int):
         if val == 0:
@@ -280,8 +358,17 @@ class MainWindow(QMainWindow):
         # Recommendation
         self.table.setItem(row, 7, QTableWidgetItem("-"))
         # Initial color by kind
+        # Apply initial muted style, then schedule animated reveal
         self._apply_row_style(row, kind=rec.get("kind", "other"), analysis=None, dup_count=0, reco=None)
+        # Register for fade effect
+        self._fading_rows[row] = 0
+        if not self._row_anim_timer.isActive():
+            self._row_anim_timer.start()
         self._update_chart()
+        # Ensure we are on results page when rows populate
+        if self._stack.currentIndex() != 1:
+            self._stack.setCurrentIndex(1)
+            self.sidebar.setCurrentRow(1)
 
     def on_analyzed(self, payload: Dict):
         if self._stopped:
@@ -548,6 +635,74 @@ class MainWindow(QMainWindow):
         enabled = not busy
         for w in [self.btn_folder, self.btn_clear, self.chk_duplicates, self.chk_perceptual, self.chk_ai, self.chk_fast, self.filter_combo]:
             w.setEnabled(enabled)
+        if busy:
+            self.busy_indicator.start()
+            self.busy_indicator.setVisible(True)
+            # Animate progress bar appear
+            self._progress_anim.stop()
+            self._progress_anim.setDirection(QPropertyAnimation.Forward)
+            self._progress_anim.start()
+        else:
+            self.busy_indicator.stop()
+            self.busy_indicator.setVisible(False)
+            # Animate progress bar disappear
+            self._progress_anim.stop()
+            self._progress_anim.setDirection(QPropertyAnimation.Backward)
+            self._progress_anim.start()
+
+    def _tick_row_fade(self):
+        if not self._fading_rows:
+            self._row_anim_timer.stop()
+            return
+        finished = []
+        for row, step in list(self._fading_rows.items()):
+            # Increase opacity effect by overlaying a white->none fade (simulate by adjusting alpha of base color)
+            factor = min(step / 10.0, 1.0)
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item:
+                    bg = item.background()
+                    # Convert gradient to solid color interpolation end value (rough approximation)
+                    # We just adjust transparency by painting a composite color.
+                    # Extract first color
+                    color = QColor(255, 255, 255, int((1 - factor) * 140))
+                    # Store overlay using background role via stylesheet-rich text: not perfect but subtle.
+                    # PySide doesn't support per-item opacity directly, so we skip if factor reached.
+                    if factor >= 1:
+                        # Done
+                        pass
+            if step >= 10:
+                finished.append(row)
+            else:
+                self._fading_rows[row] = step + 1
+        for r in finished:
+            self._fading_rows.pop(r, None)
+
+    def _on_nav_change(self, row: int):
+        # Simple navigation: dashboard stays if not scanning yet
+        self._stack.setCurrentIndex(row)
+
+    def _inject_styles(self):
+        # Extend existing material theme with custom gradients
+        base = """
+        QWidget { background: #1a1d25; }
+        QMainWindow { background: #1a1d25; }
+        QListWidget { border:0; background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #221c35, stop:1 #181a24); color: #d0d3dc; }
+        QListWidget::item { border-radius: 10px; margin:4px; padding:10px 12px; }
+        QListWidget::item:selected { background: rgba(127,81,255,0.28); color: #ffffff; }
+        QListWidget::item:hover { background: rgba(127,81,255,0.18); }
+        #HeroScanButton { border:0; border-radius:80px; background: qradialgradient(cx:0.5, cy:0.45, radius:0.8, stop:0 #ff4fa3, stop:0.55 #7f51ff, stop:1 #4f9dff); color:#fff; font-size:22px; font-weight:600; }
+        #HeroScanButton:hover { box-shadow: 0 0 22px rgba(127,81,255,0.65); }
+        #HeroSuggestButton { border:1px solid #3b3f48; padding:10px 18px; border-radius:14px; background:#242730; color:#e4e6eb; }
+        #HeroSuggestButton:hover { background:#2e323b; }
+        QProgressBar { background:#252a33; border:1px solid #2f3540; border-radius:6px; height:12px; }
+        QProgressBar::chunk { background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #ff4fa3, stop:0.5 #7f51ff, stop:1 #4f9dff); border-radius:6px; }
+        QPushButton { transition: all 180ms; }
+        QPushButton:hover { opacity:0.92; }
+        QTableWidget { background: transparent; }
+        QHeaderView::section { background:#262b33; color:#d0d3dc; padding:6px; border:0; }
+        """
+        self.setStyleSheet(self.styleSheet() + base)
 
     def _iter_selected_paths(self) -> List[str]:
         sel: List[str] = []
