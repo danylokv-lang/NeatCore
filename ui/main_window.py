@@ -187,6 +187,51 @@ class MainWindow(QMainWindow):
         self.menuBar().addAction(theme_action)
         self._is_dark = True
 
+        # Loading overlay for long analysis phase
+        self._overlay_dismissed = False
+        self._loading_overlay = QWidget(self)
+        self._loading_overlay.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self._loading_overlay.setStyleSheet(
+            """
+            QWidget { background: rgba(10, 16, 18, 180); }
+            QLabel#OverlayTitle { color: #e7fbfb; font-size: 18px; font-weight: 600; }
+            QLabel#OverlayHint { color: #a8c7c9; font-size: 13px; }
+            QPushButton#OverlayClose { background: #162024; color: #e7fbfb; border: 1px solid #25383d; border-radius: 6px; padding: 6px 10px; }
+            QPushButton#OverlayClose:hover { background: #1c2a2f; }
+            """
+        )
+        ol_layout = QVBoxLayout(self._loading_overlay)
+        ol_layout.setContentsMargins(28, 24, 28, 24)
+        ol_layout.setSpacing(10)
+        ol_box = QWidget(self._loading_overlay)
+        box_layout = QVBoxLayout(ol_box)
+        box_layout.setContentsMargins(16, 14, 16, 14)
+        box_layout.setSpacing(8)
+        self._ol_title = QLabel("Processing analysis…")
+        self._ol_title.setObjectName("OverlayTitle")
+        self._ol_hint = QLabel("If loading takes long, you likely selected a folder with a very large number of files.")
+        self._ol_hint.setWordWrap(True)
+        self._ol_hint.setObjectName("OverlayHint")
+        self._ol_close = QPushButton("Hide message")
+        self._ol_close.setObjectName("OverlayClose")
+        self._ol_close.clicked.connect(self._dismiss_overlay)
+        box_layout.addWidget(self._ol_title)
+        box_layout.addWidget(self._ol_hint)
+        box_layout.addWidget(self._ol_close, alignment=Qt.AlignLeft)
+        ol_layout.addStretch(1)
+        ol_layout.addWidget(ol_box)
+        ol_layout.addStretch(2)
+        self._loading_overlay.setVisible(False)
+        # Delayed overlay timer to avoid flicker on fast analyses
+        self._overlay_timer = QTimer(self)
+        self._overlay_timer.setSingleShot(True)
+        self._overlay_timer.timeout.connect(lambda: self._show_loading_overlay(True))
+
+    def _dismiss_overlay(self):
+        # Hide and mark dismissed to avoid re-showing during this analysis session
+        self._overlay_dismissed = True
+        self._loading_overlay.setVisible(False)
+
     # UI Actions
     def toggle_theme(self):
         self._is_dark = not self._is_dark
@@ -211,6 +256,10 @@ class MainWindow(QMainWindow):
         self.lbl_folder.setText("No folders selected")
 
     def on_scan(self):
+        # Reset overlay dismissal for new run
+        self._overlay_dismissed = False
+        # Reset seen paths to avoid stale duplicates across runs
+        self._seen_paths = set()
         # Cancel previous runs if any
         if self._scan_worker and self._scan_worker.isRunning():
             self._scan_worker.cancel(); self._scan_worker.wait(500)
@@ -245,6 +294,14 @@ class MainWindow(QMainWindow):
             self.progress.setValue(val)
 
     def on_scan_chunk(self, rec: Dict):
+        # Prevent duplicate rows (seen path set)
+        if not hasattr(self, "_seen_paths"):
+            self._seen_paths = set()
+        p = rec.get("path")
+        if p and p in self._seen_paths:
+            return
+        if p:
+            self._seen_paths.add(p)
         self._records.append(rec)
         self._chunk_buffer.append(rec)
 
@@ -263,6 +320,8 @@ class MainWindow(QMainWindow):
         self.progress.setValue(0)
         self._records = records
         # Start analysis
+        # Schedule the loading overlay to avoid flicker on quick runs
+        self._overlay_timer.start(800)
         self._analyze_worker = AnalyzeWorker(
             records=records,
             enable_ai=self.chk_ai.isChecked(),
@@ -369,6 +428,8 @@ class MainWindow(QMainWindow):
     def on_analysis_done(self):
         self.statusBar().showMessage("Analysis complete", 5000)
         self._set_busy(False)
+        self._overlay_timer.stop()
+        self._show_loading_overlay(False)
 
     def _update_chart(self):
         # Charts are disabled - skip chart updates
@@ -567,6 +628,34 @@ class MainWindow(QMainWindow):
             self._progress_anim.stop()
             self._progress_anim.setDirection(QPropertyAnimation.Backward)
             self._progress_anim.start()
+
+    def resizeEvent(self, event):
+        try:
+            # Keep overlay covering the whole window content
+            if self._loading_overlay:
+                self._loading_overlay.setGeometry(self.rect())
+        except Exception:
+            pass
+        super().resizeEvent(event)
+
+    def _show_loading_overlay(self, show: bool):
+        try:
+            if show and self._overlay_dismissed:
+                # Respect user dismissal; do not re-show
+                return
+            self._loading_overlay.setGeometry(self.rect())
+            if show:
+                # Hide heavy table while overlay is active to prevent drawing artifacts
+                self.table.setVisible(False)
+                self._loading_overlay.setVisible(True)
+                self._loading_overlay.raise_()
+                self._loading_overlay.setFocus()
+            else:
+                self._loading_overlay.setVisible(False)
+                self.table.setVisible(True)
+                self.table.viewport().update()
+        except Exception:
+            pass
 
     def _tick_row_fade(self):
         if not self._fading_rows:

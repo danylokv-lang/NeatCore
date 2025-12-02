@@ -1,10 +1,12 @@
 ; Inno Setup Script for NeatCore
 ; Build prerequisites:
 ; 1) Create a Windows executable with PyInstaller
-;    pyinstaller --noconsole --name "NeatCore" --icon assets/app.ico main.py
+;    Recommended: pyinstaller NeatCore.spec
+;    or: pyinstaller --noconsole --name "NeatCore" --icon assets/icon.ico main.py
 ;    Output will be under dist\NeatCore\NeatCore.exe
 ; 2) Then compile this script in Inno Setup to produce the installer.
 
+#define MyAppVersion "1.1.0"
 #define RootDir AddBackslash(SourcePath) + "..\\"
 #define NeatExe AddBackslash(RootDir) + "dist\\NeatCore\\NeatCore.exe"
 #define NeatDir AddBackslash(RootDir) + "dist\\NeatCore"
@@ -14,21 +16,23 @@
 [Setup]
 AppId={{6C2E5B3A-3B4A-4A3F-9D8A-2C9D0A8F1A11}
 AppName=NeatCore
-AppVersion=1.0.0
+AppVersion={#MyAppVersion}
+AppVerName=NeatCore {#MyAppVersion}
 AppPublisher=AI Tools
 DefaultDirName={pf64}\NeatCore
 DefaultGroupName=NeatCore
 DisableDirPage=no
 DisableProgramGroupPage=no
 OutputDir=dist-installer
-OutputBaseFilename=NeatCore-Setup
+OutputBaseFilename=NeatCore-Setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 ; Paths are relative to this script in installer/ — go up one level
-; Remove app.ico; optional: set wizard images to PNG
-;SetupIconFile is omitted to avoid .ico; Inno will use default
+; Use generated icon.ico (built from assets/blue_icon.png via build_icon.py)
+SetupIconFile={#RootDir}assets\icon.ico
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
+VersionInfoVersion={#MyAppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -48,7 +52,8 @@ Source: "{#NeatDir}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs c
 	#endif
 #endif
 ; Include additional needed files (if any), like themes or assets
-Source: "{#RootDir}assets\icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}assets\blue_icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "{#RootDir}assets\icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 
 [Icons]
 ; If legacy EXE name is present, shortcuts will still work because only Filename matters
