@@ -1,0 +1,10 @@
+pyside6>=6.6
+qt-material>=2.14
+Pillow>=10.0.0
+imagehash>=4.3
+numpy>=1.26
+send2trash>=1.8.2
+# Optional AI (enable for image/content classification)
+transformers>=4.45.0
+# For PyTorch on Windows CPU, install with:
+# pip install torch --index-url https://download.pytorch.org/whl/cpu

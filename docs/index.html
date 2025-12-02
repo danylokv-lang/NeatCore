@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NeatCore – Fast Intelligent File Cleaner</title>
+<meta name="description" content="NeatCore scans, classifies, deduplicates and recommends safe cleanup actions for your files." />
+<link rel="icon" type="image/png" href="../assets/icon.png" />
+<style>
+:root{--accentA:#ff4fa3;--accentB:#7f51ff;--accentC:#4f9dff;--bg:#0e1014;--panel:#171b21;--border:#22262d;--text:#f5f7fa;--muted:#a8b0bd;--radius:14px;--shadow:0 8px 28px -10px rgba(0,0,0,.6);--glow:0 0 0px rgba(127,81,255,0);font-family:'Segoe UI',system-ui,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh;-webkit-font-smoothing:antialiased;}
+a{text-decoration:none;color:#4f9dff}a:hover{text-decoration:underline}
+header{padding:3.8rem 1.6rem 3.2rem;position:relative;overflow:hidden}
+header::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(60rem 40rem at 10% 20%,rgba(127,81,255,.16),transparent 60%),
+  radial-gradient(40rem 30rem at 90% 60%,rgba(79,157,255,.12),transparent 60%),
+  linear-gradient(140deg,#121317,#181c22);opacity:.98;z-index:0}
+.nav{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2;margin-bottom:2.4rem}
+.logo{font-size:1.4rem;font-weight:600;background:linear-gradient(135deg,var(--accentA),var(--accentB) 55%,var(--accentC));-webkit-background-clip:text;color:transparent}
+.nav a{font-size:.85rem;letter-spacing:.5px;color:var(--muted);margin-left:1.2rem;transition:.3s}
+.nav a:hover{color:var(--text)}
+.hero{position:relative;z-index:2;max-width:880px;margin:0 auto;text-align:center}
+.hero h1{font-size:clamp(2.3rem,4.8vw,3.3rem);line-height:1.05;background:linear-gradient(135deg,var(--accentA),var(--accentB) 55%,var(--accentC));-webkit-background-clip:text;color:transparent;font-weight:700;margin-bottom:1.1rem}
+.tagline{font-size:1.1rem;line-height:1.5;color:var(--muted);max-width:720px;margin:0 auto 2rem}
+.cta{display:flex;justify-content:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.2rem}
+.btn{background:#1e2229;color:var(--text);padding:.9rem 1.4rem;font-size:.82rem;font-weight:600;letter-spacing:.5px;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);transition:.35s, box-shadow .35s;position:relative;overflow:hidden}
+.btn.primary{background:linear-gradient(135deg,var(--accentA),var(--accentB) 55%,var(--accentC));border:none}
+.btn:hover{transform:translateY(-4px);box-shadow:0 14px 36px -12px rgba(127,81,255,.55)}
+main{flex:1;padding:2.8rem 1.6rem 3.6rem;max-width:1100px;margin:0 auto}
+section{margin-bottom:3.6rem}
+section h2{font-size:1.6rem;margin-bottom:1.6rem;font-weight:650;background:linear-gradient(135deg,var(--accentA),var(--accentB) 55%,var(--accentC));-webkit-background-clip:text;color:transparent}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.1rem}
+.card{background:linear-gradient(155deg,rgba(34,38,46,.85),rgba(22,24,30,.85));border:1px solid var(--border);border-radius:var(--radius);padding:1rem .95rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .25s ease, border-color .25s ease}
+.card:hover{transform:translateY(-3px);border-color:#2a2f37}
+.card h3{font-size:.95rem;font-weight:600;margin:.2rem 0 .55rem}
+.card p{font-size:.72rem;line-height:1.35;color:var(--muted);margin:0}
+.downloads{display:flex;flex-wrap:wrap;gap:.9rem;margin:1.2rem 0 1rem}
+.note{font-size:.75rem;color:var(--muted);margin-top:.6rem}
+footer{text-align:center;padding:2rem .8rem;font-size:.6rem;color:#6f7883;border-top:1px solid #181b20;background:#101114}
+.theme-toggle{cursor:pointer;background:#20242b;border:1px solid #2a2e35;padding:.45rem .8rem;border-radius:8px;font-size:.7rem;color:var(--muted);transition:.3s}
+.theme-toggle:hover{color:var(--text)}
+.dark body{background:#0a0c0f}
+.dark header::before{background:radial-gradient(circle at 22% 28%,#2b193b,transparent 60%),radial-gradient(circle at 75% 62%,#0b3451,transparent 66%),linear-gradient(140deg,#0c0d10,#15171c)}
+@media (max-width:760px){header{padding:2.8rem 1rem 2.4rem}.nav{flex-direction:column;align-items:flex-start}.nav a{margin-left:0;margin-right:1rem}.hero h1{font-size:2.4rem}.tagline{font-size:.95rem}.features{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo">NeatCore</div>
+    <div>
+      <a href="#features">Features</a>
+      <a href="#download">Download</a>
+      <button id="themeBtn" class="theme-toggle" aria-label="Toggle theme">Theme</button>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>Clean Smarter. Not Harder.</h1>
+    <p class="tagline">NeatCore finds clutter, duplicates and low-value files using lightweight heuristics & perceptual hashing – giving you safe recommendations without waiting.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/danylokv-lang/NeatCore/releases/latest/download/NeatCore.zip">Download ZIP</a>
+      <a class="btn" href="#features">Explore ↓</a>
+    </div>
+    <div style="font-size:.65rem;color:var(--muted);">v1.0.0 • Windows x64 • Safe (Recycle Bin)</div>
+  </div>
+</header>
+<main>
+  <section id="features">
+    <h2>Key Features</h2>
+    <div class="features">
+      <div class="card"><h3>Streaming Scan</h3><p>Real‑time table population keeps UI responsive during deep scans.</p></div>
+      <div class="card"><h3>Smart Types</h3><p>Classifies images, docs, media, screenshots, archives & more.</p></div>
+      <div class="card"><h3>Duplicate Buckets</h3><p>Exact MD5 + perceptual pHash grouping for near‑lookalikes.</p></div>
+      <div class="card"><h3>Action Hints</h3><p>Reasons explain each recommendation (age, quality, redundancy).</p></div>
+      <div class="card"><h3>Safe Deletes</h3><p>send2trash moves files to Recycle Bin; easy restore.</p></div>
+      <div class="card"><h3>Fast Mode</h3><p>Skips heavy system/build dirs for quick triage.</p></div>
+      <div class="card"><h3>Multi-Folder</h3><p>Scan several roots or auto-suggest common user folders.</p></div>
+      <div class="card"><h3>Lightweight</h3><p>No heavy AI at startup; optional model loading deferred.</p></div>
+    </div>
+  </section>
+  <section id="download">
+    <h2>Download & Verify</h2>
+    <p>Use official GitHub Releases (no large file limits). Installer and portable ZIP are rebuilt from source.</p>
+    <div class="downloads">
+      <a class="btn primary" href="https://github.com/danylokv-lang/NeatCore/releases/latest/download/NeatCore.zip">Download ZIP</a>
+    </div>
+    <p class="note">If SmartScreen warns: choose “More info” → “Run anyway” (unsigned build). Consider verifying SHA256 from the Release notes.</p>
+  </section>
+  <section id="faq">
+    <h2>FAQ</h2>
+    <div class="features" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+      <div class="card"><h3>Does it auto delete?</h3><p>No. You explicitly confirm actions.</p></div>
+      <div class="card"><h3>Undo support?</h3><p>Recycle Bin restores until emptied.</p></div>
+      <div class="card"><h3>Performance impact?</h3><p>Heuristics first; heavier checks deferred.</p></div>
+      <div class="card"><h3>Future plans?</h3><p>Tagging, content previews, smarter grouping.</p></div>
+    </div>
+  </section>
+</main>
+<footer>
+  © 2025 NeatCore • <a href="https://github.com/danylokv-lang/NeatCore">GitHub</a>
+</footer>
+<script>
+const btn=document.getElementById('themeBtn');btn.addEventListener('click',()=>{document.documentElement.classList.toggle('dark');});document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const id=a.getAttribute('href').slice(1);const el=document.getElementById(id);if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth'});}})});
+</script>
+</body>
+</html>
