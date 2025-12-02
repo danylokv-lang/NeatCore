@@ -121,8 +121,19 @@ def image_resolution(img: Image.Image) -> tuple[int, int]:
 
 
 def estimate_sharpness(img: Image.Image) -> float:
-    # Simple gradient magnitude energy as sharpness proxy
-    gray = np.asarray(img.convert("L"), dtype=np.float32)
-    gy, gx = np.gradient(gray)
-    mag = np.sqrt(gx * gx + gy * gy)
-    return float(np.mean(mag))
+    # Gradient magnitude energy as sharpness proxy with guards for tiny images
+    try:
+        # Downscale very large images for speed
+        w, h = img.size
+        if max(w, h) > 1024:
+            ratio = 1024.0 / float(max(w, h))
+            nw, nh = max(1, int(w * ratio)), max(1, int(h * ratio))
+            img = img.resize((nw, nh), Image.BILINEAR)
+        gray = np.asarray(img.convert("L"), dtype=np.float32)
+        if gray.ndim != 2 or min(gray.shape) < 2:
+            return 0.0
+        gy, gx = np.gradient(gray)
+        mag = np.sqrt(gx * gx + gy * gy)
+        return float(np.mean(mag))
+    except Exception:
+        return 0.0

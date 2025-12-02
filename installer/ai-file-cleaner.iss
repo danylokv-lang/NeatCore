@@ -6,7 +6,7 @@
 ;    Output will be under dist\NeatCore\NeatCore.exe
 ; 2) Then compile this script in Inno Setup to produce the installer.
 
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.1.1"
 #define RootDir AddBackslash(SourcePath) + "..\\"
 #define NeatExe AddBackslash(RootDir) + "dist\\NeatCore\\NeatCore.exe"
 #define NeatDir AddBackslash(RootDir) + "dist\\NeatCore"

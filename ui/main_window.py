@@ -46,6 +46,16 @@ class MainWindow(QMainWindow):
         # Top bar
         top = QWidget()
         top_l = QHBoxLayout(top)
+        # App logo on the left
+        self.logo_lbl = QLabel()
+        try:
+            base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            png = os.path.join(base, "assets", "blue_icon.png")
+            if os.path.exists(png):
+                from PySide6.QtGui import QPixmap
+                self.logo_lbl.setPixmap(QPixmap(png).scaled(20,20, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        except Exception:
+            pass
         self.btn_folder = QPushButton("Add Folder")
         self.lbl_folder = QLabel("No folders selected")
         self.btn_clear = QPushButton("Clear")
@@ -65,6 +75,7 @@ class MainWindow(QMainWindow):
         self.progress.setMaximum(100)
         self.progress.setValue(0)
 
+        top_l.addWidget(self.logo_lbl)
         top_l.addWidget(self.btn_folder)
         top_l.addWidget(self.lbl_folder, 1)
         top_l.addWidget(self.btn_clear)
@@ -282,7 +293,7 @@ class MainWindow(QMainWindow):
         self._scan_worker.progress.connect(self.on_scan_progress)
         self._scan_worker.chunk.connect(self.on_scan_chunk)
         self._scan_worker.done.connect(self.on_scan_done)
-        self._scan_worker.error.connect(lambda e: QMessageBox.critical(self, "Scan Error", e))
+        self._scan_worker.error.connect(self._on_worker_error)
         self._scan_worker.start()
         self._flush_timer.start()
 
@@ -332,7 +343,7 @@ class MainWindow(QMainWindow):
         self._analyze_worker.analyzed.connect(self.on_analyzed)
         self._analyze_worker.analyzed_batch.connect(self.on_analyzed_batch)
         self._analyze_worker.done.connect(self.on_analysis_done)
-        self._analyze_worker.error.connect(lambda e: QMessageBox.critical(self, "Analysis Error", e))
+        self._analyze_worker.error.connect(self._on_worker_error)
         self._analyze_worker.start()
 
     def _add_table_row(self, rec: Dict):
@@ -637,6 +648,13 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
         super().resizeEvent(event)
+
+    def _on_worker_error(self, msg: str):
+        # Suppress disruptive popups; log to status bar instead
+        try:
+            self.statusBar().showMessage(str(msg), 7000)
+        except Exception:
+            pass
 
     def _show_loading_overlay(self, show: bool):
         try:

@@ -1,6 +1,11 @@
 // NeatCore website interactions
 // NeatCore website interactions (minimal for stability)
 (function(){
+  // Always start at top of the page
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch(e) {}
+  window.addEventListener('load', function(){ window.scrollTo({top:0,left:0,behavior:'instant'}); });
+  document.addEventListener('DOMContentLoaded', function(){ window.scrollTo(0,0); });
+
   const downloadBtn = document.getElementById('downloadBtn');
   const downloadInstallerBtn = document.getElementById('downloadInstallerBtn');
 
