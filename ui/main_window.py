@@ -48,6 +48,8 @@ class MainWindow(QMainWindow):
         top_l = QHBoxLayout(top)
         # App logo on the left
         self.logo_lbl = QLabel()
+        self.logo_lbl.setFixedSize(22,22)
+        self.logo_lbl.setStyleSheet("margin-right:8px;")
         try:
             base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             png = os.path.join(base, "assets", "blue_icon.png")
@@ -57,6 +59,7 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
         self.btn_folder = QPushButton("Add Folder")
+        self.btn_folder.setStyleSheet("padding:6px 12px;")
         self.lbl_folder = QLabel("No folders selected")
         self.btn_clear = QPushButton("Clear")
         self.filter_combo = QComboBox()
@@ -618,6 +621,18 @@ class MainWindow(QMainWindow):
         self._set_busy(False)
         self.progress.setRange(0, 100)
         self.progress.setValue(0)
+        # Clear current view and state to avoid showing previous files
+        try:
+            self.table.setRowCount(0)
+            self._chunk_buffer.clear()
+            self._records = []
+            self._analyses = {}
+            self._seen_paths = set()
+            # Hide any overlay
+            self._overlay_timer.stop()
+            self._show_loading_overlay(False)
+        except Exception:
+            pass
 
     def _set_busy(self, busy: bool):
         self.btn_stop.setEnabled(busy)
