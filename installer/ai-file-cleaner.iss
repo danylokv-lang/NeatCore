@@ -25,8 +25,8 @@ OutputBaseFilename=NeatCore-Setup
 Compression=lzma
 SolidCompression=yes
 ; Paths are relative to this script in installer/ — go up one level
-; Remove app.ico; optional: set wizard images to PNG
-;SetupIconFile is omitted to avoid .ico; Inno will use default
+; Use generated icon.ico (built from assets/blue_icon.png via build_icon.py)
+SetupIconFile={#RootDir}assets\icon.ico
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
 
@@ -48,7 +48,8 @@ Source: "{#NeatDir}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs c
 	#endif
 #endif
 ; Include additional needed files (if any), like themes or assets
-Source: "{#RootDir}assets\icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}assets\blue_icon.png"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "{#RootDir}assets\icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 
 [Icons]
 ; If legacy EXE name is present, shortcuts will still work because only Filename matters
