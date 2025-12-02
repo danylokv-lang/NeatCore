@@ -187,6 +187,41 @@ class MainWindow(QMainWindow):
         self.menuBar().addAction(theme_action)
         self._is_dark = True
 
+        # Loading overlay for long analysis phase
+        self._loading_overlay = QWidget(self)
+        self._loading_overlay.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self._loading_overlay.setStyleSheet(
+            """
+            QWidget { background: rgba(10, 16, 18, 180); }
+            QLabel#OverlayTitle { color: #e7fbfb; font-size: 18px; font-weight: 600; }
+            QLabel#OverlayHint { color: #a8c7c9; font-size: 13px; }
+            QPushButton#OverlayClose { background: #162024; color: #e7fbfb; border: 1px solid #25383d; border-radius: 6px; padding: 6px 10px; }
+            QPushButton#OverlayClose:hover { background: #1c2a2f; }
+            """
+        )
+        ol_layout = QVBoxLayout(self._loading_overlay)
+        ol_layout.setContentsMargins(28, 24, 28, 24)
+        ol_layout.setSpacing(10)
+        ol_box = QWidget(self._loading_overlay)
+        box_layout = QVBoxLayout(ol_box)
+        box_layout.setContentsMargins(16, 14, 16, 14)
+        box_layout.setSpacing(8)
+        self._ol_title = QLabel("Processing analysis…")
+        self._ol_title.setObjectName("OverlayTitle")
+        self._ol_hint = QLabel("If loading takes long, you likely selected a folder with a very large number of files.")
+        self._ol_hint.setWordWrap(True)
+        self._ol_hint.setObjectName("OverlayHint")
+        self._ol_close = QPushButton("Hide message")
+        self._ol_close.setObjectName("OverlayClose")
+        self._ol_close.clicked.connect(lambda: self._loading_overlay.setVisible(False))
+        box_layout.addWidget(self._ol_title)
+        box_layout.addWidget(self._ol_hint)
+        box_layout.addWidget(self._ol_close, alignment=Qt.AlignLeft)
+        ol_layout.addStretch(1)
+        ol_layout.addWidget(ol_box)
+        ol_layout.addStretch(2)
+        self._loading_overlay.setVisible(False)
+
     # UI Actions
     def toggle_theme(self):
         self._is_dark = not self._is_dark
@@ -263,6 +298,8 @@ class MainWindow(QMainWindow):
         self.progress.setValue(0)
         self._records = records
         # Start analysis
+        # Show loading overlay to inform about potentially long analysis
+        self._show_loading_overlay(True)
         self._analyze_worker = AnalyzeWorker(
             records=records,
             enable_ai=self.chk_ai.isChecked(),
@@ -369,6 +406,7 @@ class MainWindow(QMainWindow):
     def on_analysis_done(self):
         self.statusBar().showMessage("Analysis complete", 5000)
         self._set_busy(False)
+        self._show_loading_overlay(False)
 
     def _update_chart(self):
         # Charts are disabled - skip chart updates
@@ -567,6 +605,22 @@ class MainWindow(QMainWindow):
             self._progress_anim.stop()
             self._progress_anim.setDirection(QPropertyAnimation.Backward)
             self._progress_anim.start()
+
+    def resizeEvent(self, event):
+        try:
+            # Keep overlay covering the whole window content
+            if self._loading_overlay:
+                self._loading_overlay.setGeometry(self.rect())
+        except Exception:
+            pass
+        super().resizeEvent(event)
+
+    def _show_loading_overlay(self, show: bool):
+        try:
+            self._loading_overlay.setGeometry(self.rect())
+            self._loading_overlay.setVisible(show)
+        except Exception:
+            pass
 
     def _tick_row_fade(self):
         if not self._fading_rows:
