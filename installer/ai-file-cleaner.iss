@@ -24,7 +24,8 @@ DefaultGroupName=NeatCore
 DisableDirPage=no
 DisableProgramGroupPage=no
 OutputDir=dist-installer
-OutputBaseFilename=NeatCore-Setup-{#MyAppVersion}
+; Use a stable filename so website links always point to latest release asset
+OutputBaseFilename=NeatCore-Setup
 Compression=lzma
 SolidCompression=yes
 ; Paths are relative to this script in installer/ — go up one level
