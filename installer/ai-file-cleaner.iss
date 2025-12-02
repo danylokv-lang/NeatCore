@@ -6,6 +6,7 @@
 ;    Output will be under dist\NeatCore\NeatCore.exe
 ; 2) Then compile this script in Inno Setup to produce the installer.
 
+#define MyAppVersion "1.1.0"
 #define RootDir AddBackslash(SourcePath) + "..\\"
 #define NeatExe AddBackslash(RootDir) + "dist\\NeatCore\\NeatCore.exe"
 #define NeatDir AddBackslash(RootDir) + "dist\\NeatCore"
@@ -15,14 +16,15 @@
 [Setup]
 AppId={{6C2E5B3A-3B4A-4A3F-9D8A-2C9D0A8F1A11}
 AppName=NeatCore
-AppVersion=1.1.0
+AppVersion={#MyAppVersion}
+AppVerName=NeatCore {#MyAppVersion}
 AppPublisher=AI Tools
 DefaultDirName={pf64}\NeatCore
 DefaultGroupName=NeatCore
 DisableDirPage=no
 DisableProgramGroupPage=no
 OutputDir=dist-installer
-OutputBaseFilename=NeatCore-Setup-1.1.0
+OutputBaseFilename=NeatCore-Setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 ; Paths are relative to this script in installer/ — go up one level
@@ -30,6 +32,7 @@ SolidCompression=yes
 SetupIconFile={#RootDir}assets\icon.ico
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
+VersionInfoVersion={#MyAppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
