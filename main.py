@@ -56,7 +56,8 @@ def _show_splash(app: QApplication) -> QSplashScreen:
     # Center icon.png if available
     try:
         base = os.path.dirname(os.path.abspath(__file__))
-        png_path = os.path.join(base, "assets", "icon.png")
+        # Prefer the updated blue icon for splash
+        png_path = os.path.join(base, "assets", "blue_icon.png")
         if os.path.exists(png_path):
             logo = QPixmap(png_path).scaled(160, 160, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             x = (pm.width() - logo.width()) // 2

@@ -1,7 +1,8 @@
 ; Inno Setup Script for NeatCore
 ; Build prerequisites:
 ; 1) Create a Windows executable with PyInstaller
-;    pyinstaller --noconsole --name "NeatCore" --icon assets/app.ico main.py
+;    Recommended: pyinstaller NeatCore.spec
+;    or: pyinstaller --noconsole --name "NeatCore" --icon assets/icon.ico main.py
 ;    Output will be under dist\NeatCore\NeatCore.exe
 ; 2) Then compile this script in Inno Setup to produce the installer.
 
@@ -14,14 +15,14 @@
 [Setup]
 AppId={{6C2E5B3A-3B4A-4A3F-9D8A-2C9D0A8F1A11}
 AppName=NeatCore
-AppVersion=1.0.0
+AppVersion=1.1.0
 AppPublisher=AI Tools
 DefaultDirName={pf64}\NeatCore
 DefaultGroupName=NeatCore
 DisableDirPage=no
 DisableProgramGroupPage=no
 OutputDir=dist-installer
-OutputBaseFilename=NeatCore-Setup
+OutputBaseFilename=NeatCore-Setup-1.1.0
 Compression=lzma
 SolidCompression=yes
 ; Paths are relative to this script in installer/ — go up one level
